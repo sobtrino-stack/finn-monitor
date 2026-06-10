@@ -8,8 +8,10 @@ Sends Telegram message when new listings appear.
 import os
 import re
 import json
+import time
 import urllib.request
 import urllib.parse
+import urllib.error
 
 FINN_URL = (
     "https://www.finn.no/recommerce/forsale/search"
@@ -39,10 +41,36 @@ def is_junk(title: str) -> bool:
 def get_listings():
     req = urllib.request.Request(
         FINN_URL,
-        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "no-NO,no;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Cache-Control": "max-age=0",
+        }
     )
-    with urllib.request.urlopen(req, timeout=30) as r:
-        html = r.read().decode("utf-8", errors="replace")
+    import gzip
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                raw = r.read()
+                if r.info().get("Content-Encoding") == "gzip":
+                    html = gzip.decompress(raw).decode("utf-8", errors="replace")
+                else:
+                    html = raw.decode("utf-8", errors="replace")
+            break
+        except urllib.error.HTTPError as e:
+            print(f"  Attempt {attempt+1} failed: HTTP {e.code}")
+            if attempt < 2:
+                time.sleep(5 * (attempt + 1))
+            else:
+                raise
 
     urls   = re.findall(r'"url":"(https://www\.finn\.no/recommerce/forsale/item/(\d+))"', html)
     titles = re.findall(r'"name":"([^"]+)","image":"https://images\.finncdn', html)
