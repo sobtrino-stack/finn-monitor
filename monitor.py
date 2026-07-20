@@ -73,6 +73,10 @@ def get_listings():
                 raise
 
     urls   = re.findall(r'"url":"(https://www\.finn\.no/recommerce/forsale/item/(\d+))"', html)
+    if not urls:
+        print(f"  DEBUG: no listings found. HTML length={len(html)}")
+        print(f"  DEBUG: title tag: {re.search(r'<title>[^<]*</title>', html)}")
+        print(f"  DEBUG: first 500 chars: {html[:500]}")
     titles = re.findall(r'"name":"([^"]+)","image":"https://images\.finncdn', html)
 
     listings = []
