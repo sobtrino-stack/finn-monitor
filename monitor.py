@@ -109,6 +109,15 @@ def main():
     listings = get_listings()
     print(f"Fetched {len(listings)} listings from Finn.no")
 
+    # First run (or lost cache): seed seen-list silently instead of flooding Telegram
+    if not seen:
+        for item in listings:
+            seen[item["id"]] = True
+        print("Seeded seen-list silently (no cache found), no notifications sent")
+        with open(SEEN_FILE, "w") as f:
+            json.dump(seen, f)
+        return
+
     new_count = 0
     for item in listings:
         fid = item["id"]
