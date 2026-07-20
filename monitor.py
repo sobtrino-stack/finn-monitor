@@ -45,7 +45,7 @@ def get_listings():
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "no-NO,no;q=0.9,en-US;q=0.8,en;q=0.7",
-            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Encoding": "gzip",
             "Connection": "keep-alive",
             "Upgrade-Insecure-Requests": "1",
             "Sec-Fetch-Dest": "document",
@@ -74,9 +74,7 @@ def get_listings():
 
     urls   = re.findall(r'"url":"(https://www\.finn\.no/recommerce/forsale/item/(\d+))"', html)
     if not urls:
-        print(f"  DEBUG: no listings found. HTML length={len(html)}")
-        print(f"  DEBUG: title tag: {re.search(r'<title>[^<]*</title>', html)}")
-        print(f"  DEBUG: first 500 chars: {html[:500]}")
+        print(f"  WARNING: no listings found. HTML length={len(html)}, encoding={r.info().get('Content-Encoding')}")
     titles = re.findall(r'"name":"([^"]+)","image":"https://images\.finncdn', html)
 
     listings = []
